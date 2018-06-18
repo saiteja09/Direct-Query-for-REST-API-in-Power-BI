@@ -3,11 +3,15 @@ section OpenAccessODBC;
 
 /* This is the method for connection to ODBC*/
 [DataSource.Kind="OpenAccessODBC", Publish="OpenAccessODBC.Publish"]
-shared OpenAccessODBC.Databases = (server as text,catalog as text) as table =>
+shared OpenAccessODBC.Databases = (host as text,port as text,catalog as text,baseurl as text) as table =>
       let
         ConnectionString = [
-            Driver = "DataDirect OpenAccess SDK 8.1"
-        ] & GetAddress(server),
+            Driver = "DataDirect OpenAccess SDK 8.1",
+            CustomProperties = baseurl,
+            Host = host,
+            Port = port
+
+        ],
         OdbcDatasource = Odbc.DataSource(ConnectionString, [
             HierarchicalNavigation = true,
             TolerateConcatOverflow = true,
@@ -58,23 +62,3 @@ OpenAccessODBC.Icons = [
     Icon32 = { Extension.Contents("OpenAccessODBC32.png"), Extension.Contents("OpenAccessODBC40.png"), Extension.Contents("OpenAccessODBC48.png"), Extension.Contents("OpenAccessODBC64.png") }
 ];
 
- GetAddress = (server as text) as record =>
-            let
-                Address = Uri.Parts("http://" & server),
-                Port = if Address[Port] = 80 and not Text.EndsWith(server, ":80") then [] else [port = Address[Port]],
-                Host = [host = Address[Host]],
-                ConnectionString = Host & Port,
-                Result =
-                    if Address[Host] = ""
-                        or Address[Scheme] <> "http"
-                        or Address[Path] <> "/"
-                        or Address[Query] <> []
-                        or Address[Fragment] <> ""
-                        or Address[UserName] <> ""
-                        or Address[Password] <> ""
-                        or Text.StartsWith(server, "http:/", Comparer.OrdinalIgnoreCase) then
-                        error "Invalid server name"
-                    else
-                        ConnectionString
-            in
-                Result;
