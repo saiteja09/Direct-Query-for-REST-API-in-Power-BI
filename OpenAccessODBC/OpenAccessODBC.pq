@@ -3,14 +3,10 @@ section OpenAccessODBC;
 
 /* This is the method for connection to ODBC*/
 [DataSource.Kind="OpenAccessODBC", Publish="OpenAccessODBC.Publish"]
-shared OpenAccessODBC.Databases = (host as text,port as text,catalog as text,baseurl as text) as table =>
+shared OpenAccessODBC.Databases = (dsn as text) as table =>
       let
         ConnectionString = [
-            Driver = "DataDirect OpenAccess SDK 8.1",
-            CustomProperties = baseurl,
-            Host = host,
-            Port = port
-
+            DSN=dsn
         ],
         OdbcDatasource = Odbc.DataSource(ConnectionString, [
             HierarchicalNavigation = true,
@@ -29,12 +25,9 @@ shared OpenAccessODBC.Databases = (host as text,port as text,catalog as text,bas
                 // We enable numeric and string literals which should enable literals for all constants.
                 SQL_API_SQLBINDPARAMETER = false
             ]
-        ]),
-        // Filter with Catalog
-       Database = OdbcDatasource{[Name=catalog,Kind="Database"]}[Data],
-       OAUSER_Schema = Database{[Name="OAUSER",Kind="Schema"]}[Data]
-    in
-        OAUSER_Schema;
+        ])
+
+        in OdbcDatasource;
 
 
 // Data Source Kind description
